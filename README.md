@@ -18,11 +18,45 @@ Requires Python 3.13+ and Django 6.0+.
 
 ## Install
 
+The package is installed straight from GitHub (it is not on PyPI, so a bare
+`pip install b-queue` / `uv add b-queue` will not find it).
+
+With uv:
+
+```bash
+uv add "b-queue @ git+https://github.com/brwa-ata/b-queue"
+```
+
+With pip:
+
 ```bash
 pip install "b-queue @ git+https://github.com/brwa-ata/b-queue"
 ```
 
-For Redis add the extra: `"b-queue[redis] @ git+https://github.com/brwa-ata/b-queue"`.
+For the Redis backend, add the `redis` extra:
+
+```bash
+uv add "b-queue[redis] @ git+https://github.com/brwa-ata/b-queue"
+```
+
+```bash
+pip install "b-queue[redis] @ git+https://github.com/brwa-ata/b-queue"
+```
+
+To update to the latest version later:
+
+```bash
+uv lock --upgrade-package b-queue && uv sync
+```
+
+```bash
+pip install --upgrade --force-reinstall "b-queue @ git+https://github.com/brwa-ata/b-queue"
+```
+
+To stay on a fixed version, append a tag, branch or commit to the URL, e.g.
+`...brwa-ata/b-queue@21ca907`.
+
+Then add the app and pick a backend:
 
 ```python
 # settings.py
