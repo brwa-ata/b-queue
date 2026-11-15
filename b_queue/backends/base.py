@@ -83,11 +83,13 @@ class QueueBackend(BaseTaskBackend):
         return build_result(self.get_record(str(result_id)))
 
     # -- enqueueing -------------------------------------------------------
-    def enqueue_job(self, task, args, kwargs):
+    def enqueue_job(self, task, args, kwargs, schedule=None):
         """Returns (task result, queued). `queued` is False when a unique
-        task was dropped; the result is then the job already in the queue."""
+        task was dropped; the result is then the job already in the queue.
+        `schedule` names the schedule entry doing the enqueue."""
         self.validate_task(task)
         record = self.new_record(task, args, kwargs)
+        record.schedule = schedule
 
         alias = self._commit_alias()
         if alias:

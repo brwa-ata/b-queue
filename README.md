@@ -649,6 +649,45 @@ recalculate_balance.enqueue(partner.id)                        # current tenant
 recalculate_balance.with_context(tenant=5).enqueue(partner_id) # from a shell or command
 ```
 
+## Django admin
+
+With the database backend and `django.contrib.admin` installed, two read-only
+pages appear under **Queue**. There is nothing to configure.
+
+**Jobs** lists every job still stored: task, status, queue, the schedule entry
+that queued it (if any), attempts and times. Filter by status, queue or
+schedule entry; open a job to see its arguments, return value and the
+traceback of each failed attempt. The "Retry the selected failed jobs" action
+puts failed jobs back on the queue.
+
+**Schedules** lists the entries declared in your `schedules.py` files:
+
+| Column | Meaning |
+|---|---|
+| Name, Task, Cron | The entry as declared, with its arguments, queue and timezone. |
+| Next run | The next time slot of the entry. |
+| Last slot | The last slot the scheduler handled. Empty until the scheduler has run. |
+| Last job | Status of the newest job the entry queued; links to the job. |
+| Jobs | How many of its jobs are stored, and how many failed; links to the Jobs page filtered to this entry. |
+
+Good to know:
+
+- Entries cannot be edited in the admin; they live in code.
+- "Last slot" can be newer than "Last job": a slot that was skipped
+  (`when()`, `between()`, `without_overlapping()`, or found later than
+  `SCHEDULE_GRACE`) queues nothing.
+- History goes back as far as the stored jobs: successful jobs are pruned
+  after `KEEP_RESULTS` (7 days by default).
+- Staff users need the "view job" / "view schedule" permissions.
+- With the Redis backend the jobs are not in the database, so use
+  `queue_status`, `queue_failed` and `schedule_list` instead. The Schedules
+  page still lists such entries, without job tracking.
+- If the queue lives in another database (`OPTIONS['DATABASE']`), the pages
+  read from that database.
+
+Upgrading from an earlier install: run `python manage.py migrate` once; the
+job table gained a `schedule` column.
+
 ## Settings
 
 Per backend, in `TASKS[alias]['OPTIONS']`:
@@ -730,8 +769,6 @@ test settings (or use `captureOnCommitCallbacks(execute=True)`).
 - The scheduler's resolution is one minute.
 - SQLite is fine for development and small sites; use PostgreSQL/MySQL or
   Redis when several workers process a lot of jobs.
-- The Django admin shows the database queue read-only (`Queue › Jobs`) with a
-  "retry" action.
 
 ## Development
 

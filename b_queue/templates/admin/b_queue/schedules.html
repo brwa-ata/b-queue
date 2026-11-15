@@ -1,0 +1,79 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls %}
+
+{% block bodyclass %}{{ block.super }} app-{{ opts.app_label }} model-{{ opts.model_name }} change-list{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">{% translate 'Home' %}</a>
+  &rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+  &rsaquo; {{ title }}
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  {% if error %}<p class="errornote">{{ error }}</p>{% endif %}
+
+  <p class="help">
+    Entries are declared in code (<code>schedules.py</code>) and queued by
+    <code>manage.py queue_work --schedule</code> or <code>schedule_work</code>.
+    Job counts cover the jobs still stored; finished jobs are pruned after
+    <code>KEEP_RESULTS</code>. Times are shown in {{ now|date:"e" }}.
+  </p>
+
+  <div class="module" id="changelist">
+    <div class="results">
+      <table id="result_list">
+        <thead>
+          <tr>
+            <th scope="col"><div class="text"><span>Name</span></div></th>
+            <th scope="col"><div class="text"><span>Task</span></div></th>
+            <th scope="col"><div class="text"><span>Cron</span></div></th>
+            <th scope="col"><div class="text"><span>Next run</span></div></th>
+            <th scope="col"><div class="text"><span>Last slot</span></div></th>
+            <th scope="col"><div class="text"><span>Last job</span></div></th>
+            <th scope="col"><div class="text"><span>Jobs</span></div></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for entry in entries %}
+          <tr>
+            <th scope="row">{{ entry.name }}</th>
+            <td>
+              <code>{{ entry.task }}</code>{% if entry.args %}<br><span class="quiet">{{ entry.args }}</span>{% endif %}
+              <br><span class="quiet">queue: {{ entry.queue }}{% if entry.without_overlapping %} · without overlapping{% endif %}{% if entry.for_each %} · for each context{% endif %}</span>
+            </td>
+            <td>
+              <code>{{ entry.expression }}</code>{% if entry.timezone %}<br><span class="quiet">{{ entry.timezone }}</span>{% endif %}
+            </td>
+            <td class="nowrap">{{ entry.next_due|date:"Y-m-d H:i" }}</td>
+            <td class="nowrap">{% if entry.last_slot %}{{ entry.last_slot|date:"Y-m-d H:i" }}{% else %}-{% endif %}</td>
+            <td class="nowrap">
+              {% if not entry.tracked %}
+                <span class="quiet">not in the database</span>
+              {% elif entry.last_job %}
+                <a href="{% url 'admin:b_queue_job_change' entry.last_job.pk %}">{{ entry.last_job.get_status_display }}</a>
+                <br><span class="quiet">{{ entry.last_job.enqueued_at|date:"Y-m-d H:i" }}</span>
+              {% else %}
+                -
+              {% endif %}
+            </td>
+            <td class="nowrap">
+              {% if entry.tracked %}
+                <a href="{{ entry.jobs_url }}">{{ entry.total }}</a>
+                {% if entry.failed %}· <a href="{{ entry.failed_url }}" class="errors">{{ entry.failed }} failed</a>{% endif %}
+              {% else %}
+                -
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7">No schedule entries are declared.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

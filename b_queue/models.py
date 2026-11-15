@@ -36,6 +36,8 @@ class Job(models.Model):
     options = models.JSONField(default=dict)
     # set only when a context provider is configured (multi-tenancy)
     context = models.JSONField(null=True, blank=True)
+    # the schedule entry that queued the job, if one did
+    schedule = models.CharField(max_length=255, null=True, blank=True)
     return_value = models.JSONField(null=True, blank=True)
     errors = models.JSONField(default=list)
 
@@ -50,6 +52,10 @@ class Job(models.Model):
             models.Index(fields=['status', 'timeout_at'], name='b_queue_job_lost_idx'),
             models.Index(fields=['status', 'finished_at'], name='b_queue_job_done_idx'),
             models.Index(fields=['task_path'], name='b_queue_job_task_idx'),
+            # the admin's schedules page: the latest jobs of an entry
+            models.Index(
+                fields=['schedule', '-enqueued_at'], name='b_queue_job_sched_idx'
+            ),
         ]
 
     def __str__(self) -> str:
@@ -70,6 +76,8 @@ class ScheduleRun(models.Model):
 
     class Meta:
         db_table = 'b_queue_schedule_run'
+        verbose_name = 'schedule'
+        verbose_name_plural = 'schedules'
 
     def __str__(self) -> str:
         return self.name

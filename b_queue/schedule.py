@@ -324,7 +324,9 @@ class Event:
                 unique_until='finish',
                 unique_for=self._overlap_expires,
             )
-        result, queued = backend.enqueue_job(task, self.args, self.kwargs)
+        result, queued = backend.enqueue_job(
+            task, self.args, self.kwargs, schedule=self.label
+        )
         return [result] if queued else []
 
 

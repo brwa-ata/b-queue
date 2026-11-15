@@ -59,6 +59,8 @@ class JobRecord:
     overlap_key: str | None = None
     # What the context provider captured at enqueue (e.g. the tenant)
     context: dict | None = None
+    # The schedule entry that queued the job, if one did
+    schedule: str | None = None
     return_value: Any = None
     errors: list = field(default_factory=list)
     # Identifies the reservation made by reserve(); not stored with the job

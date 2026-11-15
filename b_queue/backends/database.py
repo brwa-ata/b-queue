@@ -47,6 +47,7 @@ def to_record(job) -> JobRecord:
         unique_for=options.get('unique_for'),
         overlap_key=options.get('overlap_key'),
         context=job.context,
+        schedule=job.schedule,
         return_value=job.return_value,
         errors=list(job.errors),
         token=job.timeout_at,
@@ -98,6 +99,7 @@ class DatabaseBackend(QueueBackend):
                         args_kwargs={'args': record.args, 'kwargs': record.kwargs},
                         enqueued_at=record.enqueued_at,
                         context=record.context,
+                        schedule=record.schedule,
                         options={
                             'tries': record.tries,
                             'backoff': record.backoff,
